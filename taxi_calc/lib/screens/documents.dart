@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:taxi_calc/core/localization/app_strings.dart';
 import 'package:taxi_calc/layout_screen.dart/master_screen.dart';
 
 class DocsScreen extends StatelessWidget {
@@ -6,9 +7,10 @@ class DocsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final strings = AppStrings.of(context);
     return MasterScreen(
-      title: "Product List",
-      child: Center(child: Column(children: [const Text("Services Screen")])),
+      title: strings.documentsTitle,
+      child: Center(child: Text(strings.documentsScreenPlaceholder)),
     );
   }
 }

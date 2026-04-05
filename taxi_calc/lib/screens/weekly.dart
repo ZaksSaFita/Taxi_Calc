@@ -1,4 +1,5 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
+import 'package:taxi_calc/core/localization/app_strings.dart';
 import 'package:taxi_calc/layout_screen.dart/master_screen.dart';
 
 class WeeklyScreen extends StatelessWidget {
@@ -6,10 +7,11 @@ class WeeklyScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MasterScreen(
-      title: 'Weekly Earnings',
+    final strings = AppStrings.of(context);
+    return MasterScreen(
+      title: strings.weeklyTitle,
       showBackButton: true,
-      child: Center(child: Text('Weekly Screen')),
+      child: Center(child: Text(strings.weeklyScreenPlaceholder)),
     );
   }
 }

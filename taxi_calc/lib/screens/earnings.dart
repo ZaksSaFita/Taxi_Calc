@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:taxi_calc/core/localization/app_strings.dart';
 
 class EarningsScreen extends StatefulWidget {
   const EarningsScreen({super.key});
@@ -17,7 +18,6 @@ class _EarningsScreenState extends State<EarningsScreen> {
   void initState() {
     super.initState();
 
-    // postavi trenutni datum na startu
     selectedDate = DateTime.now();
     _dateController.text = DateFormat('dd.MM.yyyy').format(selectedDate!);
   }
@@ -44,15 +44,17 @@ class _EarningsScreenState extends State<EarningsScreen> {
   }
 
   Widget _buildDateSelect(BuildContext context) {
+    final strings = AppStrings.of(context);
+
     return Padding(
       padding: const EdgeInsets.all(16),
       child: TextField(
         controller: _dateController,
         readOnly: true,
-        decoration: const InputDecoration(
-          labelText: 'Select Date',
-          border: OutlineInputBorder(),
-          suffixIcon: Icon(Icons.calendar_today),
+        decoration: InputDecoration(
+          labelText: strings.selectDate,
+          border: const OutlineInputBorder(),
+          suffixIcon: const Icon(Icons.calendar_today),
         ),
         onTap: () => _pickDate(context),
       ),

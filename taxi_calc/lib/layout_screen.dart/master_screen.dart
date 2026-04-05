@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:taxi_calc/core/localization/app_strings.dart';
 import 'package:taxi_calc/screens/documents.dart';
 import 'package:taxi_calc/screens/home.dart';
 import 'package:taxi_calc/screens/services.dart';
@@ -34,6 +35,8 @@ class _MasterScreenState extends State<MasterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final strings = AppStrings.of(context);
+
     return Scaffold(
       key: _scaffoldKey,
       onDrawerChanged: (isOpen) {
@@ -72,13 +75,13 @@ class _MasterScreenState extends State<MasterScreen> {
                 children: [
                   ListTile(
                     leading: const Icon(Icons.close),
-                    title: const Text('Close'),
+                    title: Text(strings.menuClose),
                     onTap: () => Navigator.pop(context),
                   ),
                   const SizedBox(height: 16),
                   ListTile(
                     leading: const Icon(Icons.home),
-                    title: Text('Home'),
+                    title: Text(strings.menuHome),
                     onTap: () {
                       Navigator.pushReplacement(
                         context,
@@ -88,7 +91,7 @@ class _MasterScreenState extends State<MasterScreen> {
                   ),
                   ListTile(
                     leading: const Icon(Icons.build),
-                    title: Text('Services'),
+                    title: Text(strings.menuServices),
                     onTap: () {
                       Navigator.pushReplacement(
                         context,
@@ -100,7 +103,7 @@ class _MasterScreenState extends State<MasterScreen> {
                   ),
                   ListTile(
                     leading: const Icon(Icons.description),
-                    title: Text('Documents'),
+                    title: Text(strings.menuDocuments),
                     onTap: () {
                       Navigator.pushReplacement(
                         context,
@@ -110,7 +113,7 @@ class _MasterScreenState extends State<MasterScreen> {
                   ),
                   ListTile(
                     leading: const Icon(Icons.settings),
-                    title: Text('Settings'),
+                    title: Text(strings.menuSettings),
                     onTap: () {
                       Navigator.pushReplacement(
                         context,
