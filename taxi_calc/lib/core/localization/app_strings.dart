@@ -483,6 +483,271 @@ class AppStrings {
     return 'Documents screen';
   }
 
+  String get documentsIntro {
+    if (_isBs) return 'Prati dokumente i vidi sta uskoro istice.';
+    if (_isDe) return 'Behalte Dokumente im Blick und sehe, was bald ablaeuft.';
+    return 'Track documents and see what expires soon.';
+  }
+
+  String get addDocument {
+    if (_isBs) return 'Dodaj dokument';
+    if (_isDe) return 'Dokument hinzufuegen';
+    return 'Add document';
+  }
+
+  String get editDocument {
+    if (_isBs) return 'Uredi dokument';
+    if (_isDe) return 'Dokument bearbeiten';
+    return 'Edit document';
+  }
+
+  String get saveDocument {
+    if (_isBs) return 'Sacuvaj dokument';
+    if (_isDe) return 'Dokument speichern';
+    return 'Save document';
+  }
+
+  String get documentSaved {
+    if (_isBs) return 'Dokument sacuvan.';
+    if (_isDe) return 'Dokument gespeichert.';
+    return 'Document saved.';
+  }
+
+  String get documentUpdated {
+    if (_isBs) return 'Dokument azuriran.';
+    if (_isDe) return 'Dokument aktualisiert.';
+    return 'Document updated.';
+  }
+
+  String get deleteDocument {
+    if (_isBs) return 'Obrisi dokument';
+    if (_isDe) return 'Dokument loeschen';
+    return 'Delete document';
+  }
+
+  String get documentDeleted {
+    if (_isBs) return 'Dokument obrisan.';
+    if (_isDe) return 'Dokument geloescht.';
+    return 'Document deleted.';
+  }
+
+  String get chooseDocumentTemplate {
+    if (_isBs) return 'Izaberi template dokumenta';
+    if (_isDe) return 'Dokumentvorlage waehlen';
+    return 'Choose document template';
+  }
+
+  String get customDocument {
+    if (_isBs) return 'Svoj dokument';
+    if (_isDe) return 'Eigenes Dokument';
+    return 'Custom document';
+  }
+
+  String get allDocuments {
+    if (_isBs) return 'Svi';
+    if (_isDe) return 'Alle';
+    return 'All';
+  }
+
+  String get activeDocuments {
+    if (_isBs) return 'Aktivni';
+    if (_isDe) return 'Aktiv';
+    return 'Active';
+  }
+
+  String get expiringSoonDocuments {
+    if (_isBs) return 'Uskoro isticu';
+    if (_isDe) return 'Laufen bald ab';
+    return 'Expiring soon';
+  }
+
+  String get expiredDocuments {
+    if (_isBs) return 'Istekli';
+    if (_isDe) return 'Abgelaufen';
+    return 'Expired';
+  }
+
+  String get documentType {
+    if (_isBs) return 'Tip dokumenta';
+    if (_isDe) return 'Dokumenttyp';
+    return 'Document type';
+  }
+
+  String get documentName {
+    if (_isBs) return 'Naziv dokumenta';
+    if (_isDe) return 'Dokumentname';
+    return 'Document name';
+  }
+
+  String get relatedToOptional {
+    if (_isBs) return 'Za vozilo/osobu (opcionalno)';
+    if (_isDe) return 'Fuer Fahrzeug/Person (optional)';
+    return 'For vehicle/person (optional)';
+  }
+
+  String get documentNumberOptional {
+    if (_isBs) return 'Broj dokumenta (opcionalno)';
+    if (_isDe) return 'Dokumentnummer (optional)';
+    return 'Document number (optional)';
+  }
+
+  String get issueDateOptional {
+    if (_isBs) return 'Datum izdavanja (opcionalno)';
+    if (_isDe) return 'Ausstellungsdatum (optional)';
+    return 'Issue date (optional)';
+  }
+
+  String get expiryDate {
+    if (_isBs) return 'Datum isteka';
+    if (_isDe) return 'Ablaufdatum';
+    return 'Expiry date';
+  }
+
+  String get reminderDays {
+    if (_isBs) return 'Podsjetnik (dana ranije)';
+    if (_isDe) return 'Erinnerung (Tage vorher)';
+    return 'Reminder (days before)';
+  }
+
+  String get documentDetails {
+    if (_isBs) return 'Detalji dokumenta';
+    if (_isDe) return 'Dokumentdetails';
+    return 'Document details';
+  }
+
+  String get statusLabel {
+    if (_isBs) return 'Status';
+    if (_isDe) return 'Status';
+    return 'Status';
+  }
+
+  String get noDocumentsYet {
+    if (_isBs) return 'Jos nema dokumenata. Dodaj prvi dokument.';
+    if (_isDe) return 'Noch keine Dokumente. Fuege das erste Dokument hinzu.';
+    return 'No documents yet. Add your first document.';
+  }
+
+  String get noDocumentsForFilter {
+    if (_isBs) return 'Nema dokumenata za izabrani filter.';
+    if (_isDe) return 'Keine Dokumente fuer den ausgewaehlten Filter.';
+    return 'No documents for the selected filter.';
+  }
+
+  String get activeStatus {
+    if (_isBs) return 'Aktivan';
+    if (_isDe) return 'Aktiv';
+    return 'Active';
+  }
+
+  String get expiringSoonStatus {
+    if (_isBs) return 'Istice uskoro';
+    if (_isDe) return 'Laeuft bald ab';
+    return 'Expiring soon';
+  }
+
+  String get expiredStatus {
+    if (_isBs) return 'Istekao';
+    if (_isDe) return 'Abgelaufen';
+    return 'Expired';
+  }
+
+  String get registrationDoc {
+    if (_isBs) return 'Registracija';
+    if (_isDe) return 'Zulassung';
+    return 'Registration';
+  }
+
+  String get insuranceDoc {
+    if (_isBs) return 'Osiguranje';
+    if (_isDe) return 'Versicherung';
+    return 'Insurance';
+  }
+
+  String get taxiLicenseDoc {
+    if (_isBs) return 'Taksi licenca';
+    if (_isDe) return 'Taxi-Lizenz';
+    return 'Taxi license';
+  }
+
+  String get taxiSignDoc {
+    if (_isBs) return 'Taksi oznaka';
+    if (_isDe) return 'Taxi-Schild';
+    return 'Taxi sign';
+  }
+
+  String get drivingLicenseDoc {
+    if (_isBs) return 'Vozacka dozvola';
+    if (_isDe) return 'Fuehrerschein';
+    return 'Driving license';
+  }
+
+  String get idCardDoc {
+    if (_isBs) return 'Licna karta';
+    if (_isDe) return 'Personalausweis';
+    return 'ID card';
+  }
+
+  String get passportDoc {
+    if (_isBs) return 'Pasos';
+    if (_isDe) return 'Reisepass';
+    return 'Passport';
+  }
+
+  String get technicalInspectionDoc {
+    if (_isBs) return 'Tehnicki pregled';
+    if (_isDe) return 'Technische Pruefung';
+    return 'Technical inspection';
+  }
+
+  String get fireExtinguisherDoc {
+    if (_isBs) return 'PP aparat';
+    if (_isDe) return 'Feuerloescher';
+    return 'Fire extinguisher';
+  }
+
+  String get disinfectionDoc {
+    if (_isBs) return 'Dezinfekcija';
+    if (_isDe) return 'Desinfektion';
+    return 'Disinfection';
+  }
+
+  String get otherDoc {
+    if (_isBs) return 'Ostali dokument';
+    if (_isDe) return 'Sonstiges Dokument';
+    return 'Other document';
+  }
+
+  String documentTypeLabel(String key) {
+    switch (key) {
+      case 'registration':
+        return registrationDoc;
+      case 'insurance':
+        return insuranceDoc;
+      case 'taxi_license':
+        return taxiLicenseDoc;
+      case 'taxi_sign':
+        return taxiSignDoc;
+      case 'driving_license':
+        return drivingLicenseDoc;
+      case 'id_card':
+        return idCardDoc;
+      case 'passport':
+        return passportDoc;
+      case 'technical_inspection':
+        return technicalInspectionDoc;
+      case 'fire_extinguisher':
+        return fireExtinguisherDoc;
+      case 'disinfection':
+        return disinfectionDoc;
+      case 'custom':
+        return customDocument;
+      case 'other':
+        return otherDoc;
+      default:
+        return key;
+    }
+  }
+
   String get fuelLabel {
     if (_isBs) return 'Gorivo';
     if (_isDe) return 'Kraftstoff';
