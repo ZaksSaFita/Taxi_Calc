@@ -142,7 +142,9 @@ class _AddEntryFormState extends State<_AddEntryForm> {
   final _formKey = GlobalKey<FormState>();
   final _grossController = TextEditingController();
   final _kilometrageController = TextEditingController();
-  final _fuelPriceController = TextEditingController();
+  final _fuelExpenseController = TextEditingController();
+  final _foodExpenseController = TextEditingController();
+  final _otherExpenseController = TextEditingController();
   final _noteController = TextEditingController();
 
   late final AppDatabase _db;
@@ -161,6 +163,9 @@ class _AddEntryFormState extends State<_AddEntryForm> {
     _db = AppDatabase();
     _provider = DailyEntriesProvider(_db);
     _grossController.addListener(_refreshTotals);
+    _fuelExpenseController.addListener(_refreshTotals);
+    _foodExpenseController.addListener(_refreshTotals);
+    _otherExpenseController.addListener(_refreshTotals);
     _loadExistingDataForDate();
   }
 
@@ -169,7 +174,9 @@ class _AddEntryFormState extends State<_AddEntryForm> {
     _grossController.removeListener(_refreshTotals);
     _grossController.dispose();
     _kilometrageController.dispose();
-    _fuelPriceController.dispose();
+    _fuelExpenseController.dispose();
+    _foodExpenseController.dispose();
+    _otherExpenseController.dispose();
     _noteController.dispose();
 
     for (final item in _expenseItems) {
@@ -198,9 +205,12 @@ class _AddEntryFormState extends State<_AddEntryForm> {
   double get _gross => _parseNumber(_grossController.text);
 
   double get _expenseTotal {
-    return _expenseItems.fold<double>(0, (sum, item) {
-      return sum + _parseNumber(item.amountController.text);
-    });
+    return _parseNumber(_fuelExpenseController.text) +
+        _parseNumber(_foodExpenseController.text) +
+        _parseNumber(_otherExpenseController.text) +
+        _expenseItems.fold<double>(0, (sum, item) {
+          return sum + _parseNumber(item.amountController.text);
+        });
   }
 
   double get _net => _gross - _expenseTotal;
@@ -227,7 +237,9 @@ class _AddEntryFormState extends State<_AddEntryForm> {
       _editingEntryId = null;
       _grossController.clear();
       _kilometrageController.clear();
-      _fuelPriceController.clear();
+      _fuelExpenseController.clear();
+      _foodExpenseController.clear();
+      _otherExpenseController.clear();
       _noteController.clear();
 
       setState(() {
@@ -239,7 +251,9 @@ class _AddEntryFormState extends State<_AddEntryForm> {
     _editingEntryId = existing.id;
     _grossController.text = existing.income.toStringAsFixed(2);
     _kilometrageController.text = _formatOptionalDouble(existing.kilometrage);
-    _fuelPriceController.text = _formatOptionalDouble(existing.fuelPrice);
+    _fuelExpenseController.clear();
+    _foodExpenseController.clear();
+    _otherExpenseController.clear();
     _noteController.text = existing.note ?? '';
 
     final existingItems = await _provider.getExpenseItemsByEntryId(existing.id);
@@ -249,13 +263,30 @@ class _AddEntryFormState extends State<_AddEntryForm> {
         continue;
       }
 
-      final draft = _ExpenseDraft(
-        type: parsed.type,
-        serviceSubtype: parsed.serviceSubtype,
-      )..amountController.text = row.amount.toStringAsFixed(2);
+      if (parsed.type == _ExpenseType.service) {
+        final draft = _ExpenseDraft(
+          type: parsed.type,
+          serviceSubtype: parsed.serviceSubtype,
+        )..amountController.text = row.amount.toStringAsFixed(2);
 
-      draft.amountController.addListener(_refreshTotals);
-      _expenseItems.add(draft);
+        draft.amountController.addListener(_refreshTotals);
+        _expenseItems.add(draft);
+        continue;
+      }
+
+      switch (parsed.type) {
+        case _ExpenseType.fuel:
+          _fuelExpenseController.text = row.amount.toStringAsFixed(2);
+          break;
+        case _ExpenseType.food:
+          _foodExpenseController.text = row.amount.toStringAsFixed(2);
+          break;
+        case _ExpenseType.other:
+          _otherExpenseController.text = row.amount.toStringAsFixed(2);
+          break;
+        case _ExpenseType.service:
+          break;
+      }
     }
 
     if (!mounted) {
@@ -288,73 +319,18 @@ class _AddEntryFormState extends State<_AddEntryForm> {
   }
 
   Future<void> _chooseAndAddExpenseItem() async {
-    final strings = AppStrings.of(context);
-
-    final usedTypes = _expenseItems.map((item) => item.type).toSet();
     final usedServiceSubtypes = _expenseItems
         .where((item) => item.type == _ExpenseType.service)
         .map((item) => item.serviceSubtype)
         .whereType<_ServiceSubtype>()
         .toSet();
 
-    final availableTypes = <_ExpenseType>[];
-    for (final type in _ExpenseType.values) {
-      if (type == _ExpenseType.service) {
-        if (usedServiceSubtypes.length < _ServiceSubtype.values.length) {
-          availableTypes.add(type);
-        }
-        continue;
-      }
-
-      if (!usedTypes.contains(type)) {
-        availableTypes.add(type);
-      }
-    }
-
-    if (availableTypes.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(strings.noMoreItems)));
+    final selectedSubtype = await _chooseServiceSubtype(usedServiceSubtypes);
+    if (selectedSubtype == null) {
       return;
     }
 
-    final selectedType = await showModalBottomSheet<_ExpenseType>(
-      context: context,
-      builder: (context) {
-        return SafeArea(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(context).size.height * 0.7,
-            ),
-            child: ListView(
-              shrinkWrap: true,
-              children: availableTypes
-                  .map(
-                    (type) => ListTile(
-                      title: Text(type.label(strings)),
-                      onTap: () => Navigator.pop(context, type),
-                    ),
-                  )
-                  .toList(),
-            ),
-          ),
-        );
-      },
-    );
-
-    if (selectedType == null) {
-      return;
-    }
-
-    _ServiceSubtype? selectedSubtype;
-    if (selectedType == _ExpenseType.service) {
-      selectedSubtype = await _chooseServiceSubtype(usedServiceSubtypes);
-      if (selectedSubtype == null) {
-        return;
-      }
-    }
-
-    _addExpenseItem(selectedType, serviceSubtype: selectedSubtype);
+    _addExpenseItem(_ExpenseType.service, serviceSubtype: selectedSubtype);
   }
 
   Future<_ServiceSubtype?> _chooseServiceSubtype(
@@ -428,9 +404,38 @@ class _AddEntryFormState extends State<_AddEntryForm> {
     final wasEditing = _editingEntryId != null;
     final gross = _parseNumber(_grossController.text);
     final kilometrageText = _kilometrageController.text.trim();
-    final fuelPriceText = _fuelPriceController.text.trim();
+    final fuelExpense = _parseNumber(_fuelExpenseController.text);
+    final foodExpense = _parseNumber(_foodExpenseController.text);
+    final otherExpense = _parseNumber(_otherExpenseController.text);
 
     final expenseCompanions = <DailyExpenseItemsCompanion>[];
+    if (_fuelExpenseController.text.trim().isNotEmpty) {
+      expenseCompanions.add(
+        DailyExpenseItemsCompanion.insert(
+          dailyEntryId: 0,
+          label: _ExpenseType.fuel.key,
+          amount: fuelExpense,
+        ),
+      );
+    }
+    if (_foodExpenseController.text.trim().isNotEmpty) {
+      expenseCompanions.add(
+        DailyExpenseItemsCompanion.insert(
+          dailyEntryId: 0,
+          label: _ExpenseType.food.key,
+          amount: foodExpense,
+        ),
+      );
+    }
+    if (_otherExpenseController.text.trim().isNotEmpty) {
+      expenseCompanions.add(
+        DailyExpenseItemsCompanion.insert(
+          dailyEntryId: 0,
+          label: _ExpenseType.other.key,
+          amount: otherExpense,
+        ),
+      );
+    }
     for (final item in _expenseItems) {
       final amountText = item.amountController.text.trim();
       if (amountText.isEmpty) {
@@ -457,9 +462,6 @@ class _AddEntryFormState extends State<_AddEntryForm> {
         kilometrage: kilometrageText.isEmpty
             ? const Value.absent()
             : Value(_parseNumber(kilometrageText)),
-        fuelPrice: fuelPriceText.isEmpty
-            ? const Value.absent()
-            : Value(_parseNumber(fuelPriceText)),
         note: _noteController.text.trim().isEmpty
             ? const Value.absent()
             : Value(_noteController.text.trim()),
@@ -544,20 +546,12 @@ class _AddEntryFormState extends State<_AddEntryForm> {
                       ),
                       decoration: InputDecoration(
                         labelText: strings.grossRevenue,
-                        prefixText: 'KM ',
+                        suffixText: 'KM',
                       ),
                       validator: _validateRequiredMoney,
                     ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(14),
-                child: Column(
-                  children: [
+                    const SizedBox(height: 12),
+
                     TextFormField(
                       controller: _kilometrageController,
                       keyboardType: const TextInputType.numberWithOptions(
@@ -565,25 +559,60 @@ class _AddEntryFormState extends State<_AddEntryForm> {
                       ),
                       decoration: InputDecoration(
                         labelText: strings.kilometrageOptional,
+                        suffixText: 'km',
                       ),
                       validator: _validateOptionalMoney,
                     ),
                     const SizedBox(height: 12),
                     TextFormField(
-                      controller: _fuelPriceController,
+                      controller: _fuelExpenseController,
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
                       ),
                       decoration: InputDecoration(
-                        labelText: strings.fuelPriceOptional,
-                        prefixText: 'KM ',
+                        labelText: strings.fuelOptional,
+                        suffixText: 'KM',
                       ),
                       validator: _validateOptionalMoney,
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _foodExpenseController,
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      decoration: InputDecoration(
+                        labelText: strings.foodOptional,
+                        suffixText: 'KM',
+                      ),
+                      validator: _validateOptionalMoney,
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _otherExpenseController,
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      decoration: InputDecoration(
+                        labelText: strings.otherOptional,
+                        suffixText: 'KM',
+                      ),
+                      validator: _validateOptionalMoney,
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _noteController,
+                      maxLines: 3,
+                      decoration: InputDecoration(
+                        labelText: strings.noteOptional,
+                        alignLabelWithHint: true,
+                      ),
                     ),
                   ],
                 ),
               ),
             ),
+
             const SizedBox(height: 12),
             Card(
               child: Padding(
@@ -591,57 +620,149 @@ class _AddEntryFormState extends State<_AddEntryForm> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            strings.expenseItemsTitle,
-                            style: const TextStyle(fontWeight: FontWeight.w700),
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .surfaceContainerHighest
+                            .withValues(alpha: 0.45),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                width: 42,
+                                height: 42,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .primary
+                                      .withValues(alpha: 0.12),
+                                ),
+                                child: Icon(
+                                  Icons.build_outlined,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      strings.serviceLabel,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      strings.chooseServiceType,
+                                      style: TextStyle(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurfaceVariant,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                        IconButton(
-                          tooltip: strings.addItemTooltip,
-                          onPressed: _chooseAndAddExpenseItem,
-                          icon: const Icon(Icons.add_circle_outline),
-                        ),
-                      ],
+                          const SizedBox(height: 12),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: FilledButton.tonalIcon(
+                              onPressed: _chooseAndAddExpenseItem,
+                              icon: const Icon(Icons.add),
+                              label: Text(strings.addItemTooltip),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    const SizedBox(height: 4),
-                    if (_expenseItems.isEmpty)
-                      Text(strings.noExpenseItems)
-                    else
+                    if (_expenseItems.isNotEmpty) ...[
+                      const SizedBox(height: 12),
                       ..._expenseItems.asMap().entries.map((entry) {
                         final index = entry.key;
                         final item = entry.value;
                         return Padding(
-                          padding: const EdgeInsets.only(top: 8),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 14,
-                                    horizontal: 12,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(12),
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .surfaceContainerHighest
-                                        .withValues(alpha: 0.5),
-                                  ),
-                                  child: Text(
-                                    item.label(strings),
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
+                          padding: const EdgeInsets.only(top: 10),
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .outlineVariant,
                               ),
-                              const SizedBox(width: 8),
-                              SizedBox(
-                                width: 120,
-                                child: TextFormField(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .surfaceContainerHighest
+                                  .withValues(alpha: 0.25),
+                            ),
+                            child: Column(
+                              children: [
+                                Row(
+                                  children: [
+                                    Container(
+                                      width: 40,
+                                      height: 40,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(12),
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .primary
+                                            .withValues(alpha: 0.10),
+                                      ),
+                                      child: Icon(
+                                        Icons.miscellaneous_services_outlined,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .primary,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            item.label(strings),
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            strings.amountLabel,
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .onSurfaceVariant,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    IconButton(
+                                      onPressed: () =>
+                                          _removeExpenseItem(index),
+                                      icon: const Icon(Icons.delete_outline),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                TextFormField(
                                   controller: item.amountController,
                                   keyboardType:
                                       const TextInputType.numberWithOptions(
@@ -649,19 +770,17 @@ class _AddEntryFormState extends State<_AddEntryForm> {
                                       ),
                                   decoration: InputDecoration(
                                     labelText: strings.amountLabel,
-                                    prefixText: 'KM ',
+                                    suffixText: 'KM',
+                                    isDense: true,
                                   ),
                                   validator: _validateRequiredMoney,
                                 ),
-                              ),
-                              IconButton(
-                                onPressed: () => _removeExpenseItem(index),
-                                icon: const Icon(Icons.delete_outline),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         );
                       }),
+                    ],
                   ],
                 ),
               ),
@@ -682,12 +801,6 @@ class _AddEntryFormState extends State<_AddEntryForm> {
                   ],
                 ),
               ),
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _noteController,
-              maxLines: 3,
-              decoration: InputDecoration(labelText: strings.noteOptional),
             ),
             const SizedBox(height: 18),
             FilledButton.icon(

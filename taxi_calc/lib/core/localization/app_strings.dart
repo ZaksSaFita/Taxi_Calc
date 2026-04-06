@@ -175,10 +175,22 @@ class AppStrings {
     return 'Mileage (optional)';
   }
 
-  String get fuelPriceOptional {
-    if (_isBs) return 'Cijena goriva (opcionalno)';
-    if (_isDe) return 'Kraftstoffpreis (optional)';
-    return 'Fuel price (optional)';
+  String get fuelOptional {
+    if (_isBs) return 'Gorivo (opcionalno)';
+    if (_isDe) return 'Kraftstoff (optional)';
+    return 'Fuel (optional)';
+  }
+
+  String get foodOptional {
+    if (_isBs) return 'Hrana (opcionalno)';
+    if (_isDe) return 'Essen (optional)';
+    return 'Food (optional)';
+  }
+
+  String get otherOptional {
+    if (_isBs) return 'Ostalo (opcionalno)';
+    if (_isDe) return 'Sonstiges (optional)';
+    return 'Other (optional)';
   }
 
   String get expenseItemsTitle {
@@ -205,6 +217,12 @@ class AppStrings {
       return 'Tippe auf + und fuege Kraftstoff/Essen/Service/Sonstiges hinzu.';
     }
     return 'Tap + to add fuel/food/service/other.';
+  }
+
+  String get noServiceItems {
+    if (_isBs) return 'Klikni + i dodaj servis.';
+    if (_isDe) return 'Tippe auf + und fuege Service hinzu.';
+    return 'Tap + to add service.';
   }
 
   String get amountLabel {

@@ -63,17 +63,6 @@ class $DailyEntriesTable extends DailyEntries
     type: DriftSqlType.double,
     requiredDuringInsert: false,
   );
-  static const VerificationMeta _fuelPriceMeta = const VerificationMeta(
-    'fuelPrice',
-  );
-  @override
-  late final GeneratedColumn<double> fuelPrice = GeneratedColumn<double>(
-    'fuel_price',
-    aliasedName,
-    true,
-    type: DriftSqlType.double,
-    requiredDuringInsert: false,
-  );
   static const VerificationMeta _noteMeta = const VerificationMeta('note');
   @override
   late final GeneratedColumn<String> note = GeneratedColumn<String>(
@@ -102,7 +91,6 @@ class $DailyEntriesTable extends DailyEntries
     income,
     expenses,
     kilometrage,
-    fuelPrice,
     note,
     createdAt,
   ];
@@ -152,12 +140,6 @@ class $DailyEntriesTable extends DailyEntries
         ),
       );
     }
-    if (data.containsKey('fuel_price')) {
-      context.handle(
-        _fuelPriceMeta,
-        fuelPrice.isAcceptableOrUnknown(data['fuel_price']!, _fuelPriceMeta),
-      );
-    }
     if (data.containsKey('note')) {
       context.handle(
         _noteMeta,
@@ -199,10 +181,6 @@ class $DailyEntriesTable extends DailyEntries
         DriftSqlType.double,
         data['${effectivePrefix}kilometrage'],
       ),
-      fuelPrice: attachedDatabase.typeMapping.read(
-        DriftSqlType.double,
-        data['${effectivePrefix}fuel_price'],
-      ),
       note: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}note'],
@@ -226,7 +204,6 @@ class DailyEntry extends DataClass implements Insertable<DailyEntry> {
   final double income;
   final double expenses;
   final double? kilometrage;
-  final double? fuelPrice;
   final String? note;
   final DateTime createdAt;
   const DailyEntry({
@@ -235,7 +212,6 @@ class DailyEntry extends DataClass implements Insertable<DailyEntry> {
     required this.income,
     required this.expenses,
     this.kilometrage,
-    this.fuelPrice,
     this.note,
     required this.createdAt,
   });
@@ -248,9 +224,6 @@ class DailyEntry extends DataClass implements Insertable<DailyEntry> {
     map['expenses'] = Variable<double>(expenses);
     if (!nullToAbsent || kilometrage != null) {
       map['kilometrage'] = Variable<double>(kilometrage);
-    }
-    if (!nullToAbsent || fuelPrice != null) {
-      map['fuel_price'] = Variable<double>(fuelPrice);
     }
     if (!nullToAbsent || note != null) {
       map['note'] = Variable<String>(note);
@@ -268,9 +241,6 @@ class DailyEntry extends DataClass implements Insertable<DailyEntry> {
       kilometrage: kilometrage == null && nullToAbsent
           ? const Value.absent()
           : Value(kilometrage),
-      fuelPrice: fuelPrice == null && nullToAbsent
-          ? const Value.absent()
-          : Value(fuelPrice),
       note: note == null && nullToAbsent ? const Value.absent() : Value(note),
       createdAt: Value(createdAt),
     );
@@ -287,7 +257,6 @@ class DailyEntry extends DataClass implements Insertable<DailyEntry> {
       income: serializer.fromJson<double>(json['income']),
       expenses: serializer.fromJson<double>(json['expenses']),
       kilometrage: serializer.fromJson<double?>(json['kilometrage']),
-      fuelPrice: serializer.fromJson<double?>(json['fuelPrice']),
       note: serializer.fromJson<String?>(json['note']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
@@ -301,7 +270,6 @@ class DailyEntry extends DataClass implements Insertable<DailyEntry> {
       'income': serializer.toJson<double>(income),
       'expenses': serializer.toJson<double>(expenses),
       'kilometrage': serializer.toJson<double?>(kilometrage),
-      'fuelPrice': serializer.toJson<double?>(fuelPrice),
       'note': serializer.toJson<String?>(note),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
@@ -313,7 +281,6 @@ class DailyEntry extends DataClass implements Insertable<DailyEntry> {
     double? income,
     double? expenses,
     Value<double?> kilometrage = const Value.absent(),
-    Value<double?> fuelPrice = const Value.absent(),
     Value<String?> note = const Value.absent(),
     DateTime? createdAt,
   }) => DailyEntry(
@@ -322,7 +289,6 @@ class DailyEntry extends DataClass implements Insertable<DailyEntry> {
     income: income ?? this.income,
     expenses: expenses ?? this.expenses,
     kilometrage: kilometrage.present ? kilometrage.value : this.kilometrage,
-    fuelPrice: fuelPrice.present ? fuelPrice.value : this.fuelPrice,
     note: note.present ? note.value : this.note,
     createdAt: createdAt ?? this.createdAt,
   );
@@ -335,7 +301,6 @@ class DailyEntry extends DataClass implements Insertable<DailyEntry> {
       kilometrage: data.kilometrage.present
           ? data.kilometrage.value
           : this.kilometrage,
-      fuelPrice: data.fuelPrice.present ? data.fuelPrice.value : this.fuelPrice,
       note: data.note.present ? data.note.value : this.note,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
@@ -349,7 +314,6 @@ class DailyEntry extends DataClass implements Insertable<DailyEntry> {
           ..write('income: $income, ')
           ..write('expenses: $expenses, ')
           ..write('kilometrage: $kilometrage, ')
-          ..write('fuelPrice: $fuelPrice, ')
           ..write('note: $note, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
@@ -357,16 +321,8 @@ class DailyEntry extends DataClass implements Insertable<DailyEntry> {
   }
 
   @override
-  int get hashCode => Object.hash(
-    id,
-    date,
-    income,
-    expenses,
-    kilometrage,
-    fuelPrice,
-    note,
-    createdAt,
-  );
+  int get hashCode =>
+      Object.hash(id, date, income, expenses, kilometrage, note, createdAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -376,7 +332,6 @@ class DailyEntry extends DataClass implements Insertable<DailyEntry> {
           other.income == this.income &&
           other.expenses == this.expenses &&
           other.kilometrage == this.kilometrage &&
-          other.fuelPrice == this.fuelPrice &&
           other.note == this.note &&
           other.createdAt == this.createdAt);
 }
@@ -387,7 +342,6 @@ class DailyEntriesCompanion extends UpdateCompanion<DailyEntry> {
   final Value<double> income;
   final Value<double> expenses;
   final Value<double?> kilometrage;
-  final Value<double?> fuelPrice;
   final Value<String?> note;
   final Value<DateTime> createdAt;
   const DailyEntriesCompanion({
@@ -396,7 +350,6 @@ class DailyEntriesCompanion extends UpdateCompanion<DailyEntry> {
     this.income = const Value.absent(),
     this.expenses = const Value.absent(),
     this.kilometrage = const Value.absent(),
-    this.fuelPrice = const Value.absent(),
     this.note = const Value.absent(),
     this.createdAt = const Value.absent(),
   });
@@ -406,7 +359,6 @@ class DailyEntriesCompanion extends UpdateCompanion<DailyEntry> {
     required double income,
     this.expenses = const Value.absent(),
     this.kilometrage = const Value.absent(),
-    this.fuelPrice = const Value.absent(),
     this.note = const Value.absent(),
     this.createdAt = const Value.absent(),
   }) : date = Value(date),
@@ -417,7 +369,6 @@ class DailyEntriesCompanion extends UpdateCompanion<DailyEntry> {
     Expression<double>? income,
     Expression<double>? expenses,
     Expression<double>? kilometrage,
-    Expression<double>? fuelPrice,
     Expression<String>? note,
     Expression<DateTime>? createdAt,
   }) {
@@ -427,7 +378,6 @@ class DailyEntriesCompanion extends UpdateCompanion<DailyEntry> {
       if (income != null) 'income': income,
       if (expenses != null) 'expenses': expenses,
       if (kilometrage != null) 'kilometrage': kilometrage,
-      if (fuelPrice != null) 'fuel_price': fuelPrice,
       if (note != null) 'note': note,
       if (createdAt != null) 'created_at': createdAt,
     });
@@ -439,7 +389,6 @@ class DailyEntriesCompanion extends UpdateCompanion<DailyEntry> {
     Value<double>? income,
     Value<double>? expenses,
     Value<double?>? kilometrage,
-    Value<double?>? fuelPrice,
     Value<String?>? note,
     Value<DateTime>? createdAt,
   }) {
@@ -449,7 +398,6 @@ class DailyEntriesCompanion extends UpdateCompanion<DailyEntry> {
       income: income ?? this.income,
       expenses: expenses ?? this.expenses,
       kilometrage: kilometrage ?? this.kilometrage,
-      fuelPrice: fuelPrice ?? this.fuelPrice,
       note: note ?? this.note,
       createdAt: createdAt ?? this.createdAt,
     );
@@ -473,9 +421,6 @@ class DailyEntriesCompanion extends UpdateCompanion<DailyEntry> {
     if (kilometrage.present) {
       map['kilometrage'] = Variable<double>(kilometrage.value);
     }
-    if (fuelPrice.present) {
-      map['fuel_price'] = Variable<double>(fuelPrice.value);
-    }
     if (note.present) {
       map['note'] = Variable<String>(note.value);
     }
@@ -493,7 +438,6 @@ class DailyEntriesCompanion extends UpdateCompanion<DailyEntry> {
           ..write('income: $income, ')
           ..write('expenses: $expenses, ')
           ..write('kilometrage: $kilometrage, ')
-          ..write('fuelPrice: $fuelPrice, ')
           ..write('note: $note, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
@@ -879,7 +823,6 @@ typedef $$DailyEntriesTableCreateCompanionBuilder =
       required double income,
       Value<double> expenses,
       Value<double?> kilometrage,
-      Value<double?> fuelPrice,
       Value<String?> note,
       Value<DateTime> createdAt,
     });
@@ -890,7 +833,6 @@ typedef $$DailyEntriesTableUpdateCompanionBuilder =
       Value<double> income,
       Value<double> expenses,
       Value<double?> kilometrage,
-      Value<double?> fuelPrice,
       Value<String?> note,
       Value<DateTime> createdAt,
     });
@@ -955,11 +897,6 @@ class $$DailyEntriesTableFilterComposer
 
   ColumnFilters<double> get kilometrage => $composableBuilder(
     column: $table.kilometrage,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<double> get fuelPrice => $composableBuilder(
-    column: $table.fuelPrice,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -1033,11 +970,6 @@ class $$DailyEntriesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<double> get fuelPrice => $composableBuilder(
-    column: $table.fuelPrice,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<String> get note => $composableBuilder(
     column: $table.note,
     builder: (column) => ColumnOrderings(column),
@@ -1074,9 +1006,6 @@ class $$DailyEntriesTableAnnotationComposer
     column: $table.kilometrage,
     builder: (column) => column,
   );
-
-  GeneratedColumn<double> get fuelPrice =>
-      $composableBuilder(column: $table.fuelPrice, builder: (column) => column);
 
   GeneratedColumn<String> get note =>
       $composableBuilder(column: $table.note, builder: (column) => column);
@@ -1144,7 +1073,6 @@ class $$DailyEntriesTableTableManager
                 Value<double> income = const Value.absent(),
                 Value<double> expenses = const Value.absent(),
                 Value<double?> kilometrage = const Value.absent(),
-                Value<double?> fuelPrice = const Value.absent(),
                 Value<String?> note = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
               }) => DailyEntriesCompanion(
@@ -1153,7 +1081,6 @@ class $$DailyEntriesTableTableManager
                 income: income,
                 expenses: expenses,
                 kilometrage: kilometrage,
-                fuelPrice: fuelPrice,
                 note: note,
                 createdAt: createdAt,
               ),
@@ -1164,7 +1091,6 @@ class $$DailyEntriesTableTableManager
                 required double income,
                 Value<double> expenses = const Value.absent(),
                 Value<double?> kilometrage = const Value.absent(),
-                Value<double?> fuelPrice = const Value.absent(),
                 Value<String?> note = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
               }) => DailyEntriesCompanion.insert(
@@ -1173,7 +1099,6 @@ class $$DailyEntriesTableTableManager
                 income: income,
                 expenses: expenses,
                 kilometrage: kilometrage,
-                fuelPrice: fuelPrice,
                 note: note,
                 createdAt: createdAt,
               ),

@@ -277,8 +277,8 @@ class DailyEntriesProvider
 
     for (final entry in entries) {
       gross += entry.income;
-      final items = itemsByEntryId[entry.id] ?? const <DailyExpenseItem>[];
 
+      final items = itemsByEntryId[entry.id] ?? const <DailyExpenseItem>[];
       if (items.isEmpty) {
         expenses += entry.expenses;
         other += entry.expenses;
@@ -297,7 +297,7 @@ class DailyEntriesProvider
           case 'service':
             service += item.amount;
             break;
-          default:
+          case 'other':
             other += item.amount;
             break;
         }
