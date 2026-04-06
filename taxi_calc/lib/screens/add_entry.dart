@@ -330,7 +330,11 @@ class _AddEntryFormState extends State<_AddEntryForm> {
       return;
     }
 
-    _addExpenseItem(_ExpenseType.service, serviceSubtype: selectedSubtype);
+    _addExpenseItem(
+      _ExpenseType.service,
+      serviceSubtype: selectedSubtype,
+      autofocusAmount: true,
+    );
   }
 
   Future<_ServiceSubtype?> _chooseServiceSubtype(
@@ -379,13 +383,29 @@ class _AddEntryFormState extends State<_AddEntryForm> {
     );
   }
 
-  void _addExpenseItem(_ExpenseType type, {_ServiceSubtype? serviceSubtype}) {
-    final draft = _ExpenseDraft(type: type, serviceSubtype: serviceSubtype);
+  void _addExpenseItem(
+    _ExpenseType type, {
+    _ServiceSubtype? serviceSubtype,
+    bool autofocusAmount = false,
+  }) {
+    final draft = _ExpenseDraft(
+      type: type,
+      serviceSubtype: serviceSubtype,
+    );
     draft.amountController.addListener(_refreshTotals);
 
     setState(() {
       _expenseItems.add(draft);
     });
+
+    if (autofocusAmount) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) {
+          return;
+        }
+        draft.amountFocusNode.requestFocus();
+      });
+    }
   }
 
   void _removeExpenseItem(int index) {
@@ -764,6 +784,7 @@ class _AddEntryFormState extends State<_AddEntryForm> {
                                 const SizedBox(height: 12),
                                 TextFormField(
                                   controller: item.amountController,
+                                  focusNode: item.amountFocusNode,
                                   keyboardType:
                                       const TextInputType.numberWithOptions(
                                         decimal: true,
@@ -897,6 +918,7 @@ class _ExpenseDraft {
   final _ExpenseType type;
   final _ServiceSubtype? serviceSubtype;
   final TextEditingController amountController = TextEditingController();
+  final FocusNode amountFocusNode = FocusNode();
 
   String label(AppStrings strings) {
     if (type == _ExpenseType.service && serviceSubtype != null) {
@@ -914,6 +936,7 @@ class _ExpenseDraft {
 
   void dispose() {
     amountController.dispose();
+    amountFocusNode.dispose();
   }
 }
 

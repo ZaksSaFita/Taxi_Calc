@@ -211,6 +211,18 @@ class AppStrings {
     return 'Choose service type';
   }
 
+  String get enterServiceAmount {
+    if (_isBs) return 'Unesi cijenu servisa';
+    if (_isDe) return 'Servicepreis eingeben';
+    return 'Enter service amount';
+  }
+
+  String get addService {
+    if (_isBs) return 'Dodaj servis';
+    if (_isDe) return 'Service hinzufuegen';
+    return 'Add service';
+  }
+
   String get noExpenseItems {
     if (_isBs) return 'Klikni + i dodaj gorivo/hranu/servis/ostalo.';
     if (_isDe) {
@@ -427,6 +439,24 @@ class AppStrings {
     if (_isBs) return 'Prosjek po stavci';
     if (_isDe) return 'Durchschnitt pro Position';
     return 'Average per item';
+  }
+
+  String get serviceDetailsTitle {
+    if (_isBs) return 'Detalji servisa';
+    if (_isDe) return 'Service-Details';
+    return 'Service details';
+  }
+
+  String get serviceHistory {
+    if (_isBs) return 'Historija servisa';
+    if (_isDe) return 'Serviceverlauf';
+    return 'Service history';
+  }
+
+  String get serviceDateLabel {
+    if (_isBs) return 'Datum';
+    if (_isDe) return 'Datum';
+    return 'Date';
   }
 
   String get serviceTypesCount {

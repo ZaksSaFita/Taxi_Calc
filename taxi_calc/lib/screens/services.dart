@@ -69,10 +69,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
           () => _ServiceBucketBuilder(subtypeKey: subtype),
         );
         current.total += item.amount;
-        current.count += 1;
-        if (current.lastDate == null || entry.date.isAfter(current.lastDate!)) {
-          current.lastDate = entry.date;
-        }
+        current.records.add(_ServiceRecord(date: entry.date, amount: item.amount));
       }
     }
 
@@ -111,7 +108,6 @@ class _ServicesScreenState extends State<ServicesScreen> {
     final strings = AppStrings.of(context);
     final totalService = _buckets.fold<double>(0, (sum, e) => sum + e.total);
     final totalItems = _buckets.fold<int>(0, (sum, e) => sum + e.count);
-    final avgPerItem = totalItems == 0 ? 0.0 : totalService / totalItems;
     final latestDate = _buckets
         .where((e) => e.lastDate != null)
         .map((e) => e.lastDate!)
@@ -204,25 +200,6 @@ class _ServicesScreenState extends State<ServicesScreen> {
                             ],
                           ),
                         ),
-                        const SizedBox(height: 12),
-                        GridView.count(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 12,
-                          mainAxisSpacing: 12,
-                          childAspectRatio: 1.5,
-                          children: [
-                            _ServiceStatCard(
-                              label: strings.averagePerServiceItem,
-                              value: _money(avgPerItem),
-                            ),
-                            _ServiceStatCard(
-                              label: strings.serviceTypesCount,
-                              value: '${_buckets.length}',
-                            ),
-                          ],
-                        ),
                         const SizedBox(height: 16),
                         Text(
                           strings.serviceByType,
@@ -238,49 +215,84 @@ class _ServicesScreenState extends State<ServicesScreen> {
                               ? strings.serviceGeneral
                               : strings.serviceSubtypeLabel(bucket.subtypeKey);
 
-                          return Container(
-                            margin: const EdgeInsets.only(bottom: 10),
-                            padding: const EdgeInsets.all(14),
-                            decoration: BoxDecoration(
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 10),
+                            child: InkWell(
                               borderRadius: BorderRadius.circular(16),
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.surfaceContainerHigh,
-                            ),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        typeLabel,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w700,
-                                        ),
+                              onTap: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) => _ServiceTypeDetailsScreen(
+                                      bucket: bucket,
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.all(14),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(16),
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.surfaceContainerHigh,
+                                ),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            typeLabel,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            '${strings.serviceItemsCount}: ${bucket.count}',
+                                            style: TextStyle(
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .onSurface
+                                                  .withValues(alpha: 0.8),
+                                            ),
+                                          ),
+                                          Text(
+                                            '${strings.lastServiceDate}: ${bucket.lastDateText}',
+                                            style: TextStyle(
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .onSurface
+                                                  .withValues(alpha: 0.8),
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        '${strings.serviceItemsCount}: ${bucket.count}',
-                                        style: TextStyle(
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.end,
+                                      children: [
+                                        Text(
+                                          _money(bucket.total),
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 6),
+                                        Icon(
+                                          Icons.chevron_right,
                                           color: Theme.of(context)
                                               .colorScheme
-                                              .onSurface
-                                              .withValues(alpha: 0.8),
+                                              .onSurfaceVariant,
                                         ),
-                                      ),
-                                    ],
-                                  ),
+                                      ],
+                                    ),
+                                  ],
                                 ),
-                                const SizedBox(width: 10),
-                                Text(
-                                  _money(bucket.total),
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ],
+                              ),
                             ),
                           );
                         }),
@@ -289,6 +301,111 @@ class _ServicesScreenState extends State<ServicesScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _ServiceTypeDetailsScreen extends StatelessWidget {
+  const _ServiceTypeDetailsScreen({required this.bucket});
+
+  final _ServiceBucket bucket;
+
+  String _money(double value) => '${value.toStringAsFixed(2)} KM';
+
+  @override
+  Widget build(BuildContext context) {
+    final strings = AppStrings.of(context);
+    final typeLabel = bucket.subtypeKey == 'general_service'
+        ? strings.serviceGeneral
+        : strings.serviceSubtypeLabel(bucket.subtypeKey);
+
+    return MasterScreen(
+      title: typeLabel,
+      showBackButton: true,
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              color: Theme.of(context).colorScheme.surfaceContainerHigh,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  strings.serviceDetailsTitle,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                _DetailRow(
+                  label: strings.serviceSpend,
+                  value: _money(bucket.total),
+                ),
+                _DetailRow(
+                  label: strings.serviceItemsCount,
+                  value: '${bucket.count}',
+                ),
+                _DetailRow(
+                  label: strings.lastServiceDate,
+                  value: bucket.lastDateText,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            strings.serviceHistory,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 8),
+          ...bucket.records.map((record) {
+            return Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${strings.serviceDateLabel}: ${record.dateText}',
+                          style: const TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          typeLabel,
+                          style: TextStyle(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Text(
+                    _money(record.amount),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 15,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
       ),
     );
   }
@@ -352,39 +469,20 @@ class _YearSelector extends StatelessWidget {
   }
 }
 
-class _ServiceStatCard extends StatelessWidget {
-  const _ServiceStatCard({required this.label, required this.value});
+class _DetailRow extends StatelessWidget {
+  const _DetailRow({required this.label, required this.value});
 
   final String label;
   final String value;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        color: Theme.of(context).colorScheme.surfaceContainerHigh,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
         children: [
-          Text(
-            label,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 12,
-              color: Theme.of(
-                context,
-              ).colorScheme.onSurface.withValues(alpha: 0.8),
-            ),
-          ),
-          const Spacer(),
-          Text(
-            value,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-          ),
+          Expanded(child: Text(label)),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.w700)),
         ],
       ),
     );
@@ -395,14 +493,17 @@ class _ServiceBucket {
   const _ServiceBucket({
     required this.subtypeKey,
     required this.total,
-    required this.count,
-    required this.lastDate,
+    required this.records,
   });
 
   final String subtypeKey;
   final double total;
-  final int count;
-  final DateTime? lastDate;
+  final List<_ServiceRecord> records;
+
+  int get count => records.length;
+  DateTime? get lastDate => records.isEmpty ? null : records.first.date;
+  String get lastDateText =>
+      lastDate == null ? '-' : DateFormat('dd.MM.yyyy').format(lastDate!);
 }
 
 class _ServiceBucketBuilder {
@@ -410,15 +511,23 @@ class _ServiceBucketBuilder {
 
   final String subtypeKey;
   double total = 0;
-  int count = 0;
-  DateTime? lastDate;
+  final List<_ServiceRecord> records = [];
 
   _ServiceBucket build() {
+    records.sort((a, b) => b.date.compareTo(a.date));
     return _ServiceBucket(
       subtypeKey: subtypeKey,
       total: total,
-      count: count,
-      lastDate: lastDate,
+      records: List<_ServiceRecord>.unmodifiable(records),
     );
   }
+}
+
+class _ServiceRecord {
+  const _ServiceRecord({required this.date, required this.amount});
+
+  final DateTime date;
+  final double amount;
+
+  String get dateText => DateFormat('dd.MM.yyyy').format(date);
 }
